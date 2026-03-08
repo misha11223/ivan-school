@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Админ</title>
+<style>
+body{font-family:Arial;background:#f3f3f3;text-align:center}
+
+.box{
+background:white;
+margin:auto;
+margin-top:40px;
+padding:30px;
+width:420px;
+border-radius:10px;
+}
+
+input{width:100%;padding:10px;margin:8px 0}
+
+button{
+padding:10px;
+width:100%;
+background:#4f8cff;
+color:white;
+border:none;
+border-radius:6px;
+margin-top:5px
+}
+
+table{
+margin:auto;
+margin-top:40px;
+border-collapse:collapse;
+background:white
+}
+
+th,td{
+padding:10px 20px;
+border:1px solid #ddd
+}
+
+</style>
+</head>
+<body>
+
+<div class="box">
+<h2>Создать занятие</h2>
+
+<input id="nick" placeholder="Ник репетитора">
+<input id="student" placeholder="Ученик">
+<input id="day" placeholder="День недели">
+<input id="time" placeholder="Время">
+
+<button onclick="create()">Добавить занятие</button>
+<button onclick="resetWeek()">Сбросить статусы недели</button>
+
+</div>
+
+<h2>Отчёт по оплате</h2>
+
+<table>
+<thead>
+<tr>
+<th>Репетитор</th>
+<th>Проведено</th>
+<th>К оплате</th>
+<th>Реквизиты</th>
+</tr>
+</thead>
+<tbody id="report"></tbody>
+</table>
+
+<h2 id="teacherTitle"></h2>
+
+<table id="teacherTable" style="display:none">
+<thead>
+<tr>
+<th>Ученик</th>
+<th>День</th>
+<th>Время</th>
+<th>Статус</th>
+</tr>
+</thead>
+<tbody id="teacherLessons"></tbody>
+</table>
+
+<script>
+
+async function create(){
+
+await fetch("/create",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+nick:nick.value,
+student:student.value,
+day:day.value,
+time:time.value
+})
+})
+
+alert("занятие создано")
+loadReport()
+}
+
+async function resetWeek(){
+
+await fetch("/reset",{method:"POST"})
+alert("Статусы сброшены")
+loadReport()
+}
+
+async function loadReport(){
+
+const r=await fetch("/report")
+const data=await r.json()
+
+report.innerHTML=""
+
+data.forEach(t=>{
+
+report.innerHTML+=`
+<tr onclick="showTeacher(${t.id},'${t.nick}')">
+<td>${t.nick}</td>
+<td>${t.lessons}</td>
+<td>${t.pay}</td>
+<td>${t.payinfo}</td>
+</tr>
+`
+
+})
+
+}
+
+async function showTeacher(id,nick){
+
+teacherTitle.innerText="Занятия репетитора: "+nick
+
+const r=await fetch("/teacherLessons/"+id)
+const data=await r.json()
+
+teacherLessons.innerHTML=""
+
+data.forEach(l=>{
+teacherLessons.innerHTML+=`
+<tr>
+<td>${l.student}</td>
+<td>${l.day}</td>
+<td>${l.time}</td>
+<td>${l.status}</td>
+</tr>
+`
+})
+
+teacherTable.style.display="table"
+}
+
+loadReport()
+
+</script>
+
+</body>
+</html>

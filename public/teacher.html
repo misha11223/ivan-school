@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Мои занятия</title>
+<style>
+body{font-family:Arial;background:#f3f3f3;text-align:center}
+table{margin:auto;margin-top:40px;border-collapse:collapse;background:white}
+th,td{padding:10px 20px;border:1px solid #ddd}
+
+.btn{
+padding:6px 10px;
+margin:2px;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+.ok{background:#4caf50;color:white}
+.cancel{background:#f44336;color:white}
+.wait{background:#ff9800;color:white}
+.del{background:#555;color:white}
+</style>
+</head>
+<body>
+
+<h2>Мои занятия</h2>
+
+<table>
+<thead>
+<tr>
+<th>Ученик</th>
+<th>День</th>
+<th>Время</th>
+<th>Статус</th>
+<th>Действие</th>
+</tr>
+</thead>
+<tbody id="list"></tbody>
+</table>
+
+<script>
+
+const user=JSON.parse(localStorage.user)
+
+async function load(){
+
+const r=await fetch("/lessons/"+user.id)
+let data=await r.json()
+
+const order={
+"понедельник":1,
+"вторник":2,
+"среда":3,
+"четверг":4,
+"пятница":5,
+"суббота":6,
+"воскресенье":7
+}
+
+data.sort((a,b)=>{
+ return (order[(a.day||"").toLowerCase()]||99)-(order[(b.day||"").toLowerCase()]||99)
+})
+
+list.innerHTML=""
+
+data.forEach(l=>{
+
+list.innerHTML+=`
+<tr>
+<td>${l.student}</td>
+<td>${l.day}</td>
+<td>${l.time}</td>
+<td>${l.status}</td>
+<td>
+<button class="btn ok" onclick="setStatus(${l.id},'провел')">Провёл</button>
+<button class="btn cancel" onclick="setStatus(${l.id},'отменил')">Отменил</button>
+<button class="btn wait" onclick="setStatus(${l.id},'ожидание')">Ожидание</button>
+<button class="btn del" onclick="del(${l.id})">Удалить</button>
+</td>
+</tr>
+`
+})
+
+}
+
+async function setStatus(id,status){
+
+await fetch("/status",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({id,status})
+})
+
+load()
+}
+
+async function del(id){
+
+await fetch("/delete",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({id})
+})
+
+load()
+}
+
+load()
+
+</script>
+</body>
+</html>

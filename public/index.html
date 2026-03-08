@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ivan School</title>
+<style>
+body{
+font-family:Arial;
+background:linear-gradient(135deg,#4f8cff,#6ed0ff);
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+}
+
+.card{
+background:white;
+padding:40px;
+border-radius:12px;
+width:340px;
+text-align:center;
+box-shadow:0 10px 25px rgba(0,0,0,0.15);
+}
+
+input{
+width:100%;
+padding:10px;
+margin:8px 0;
+border-radius:6px;
+border:1px solid #ccc;
+}
+
+button{
+width:100%;
+padding:10px;
+margin-top:8px;
+border:none;
+border-radius:6px;
+background:#4f8cff;
+color:white;
+font-size:15px;
+cursor:pointer;
+}
+
+.small{
+margin-top:10px;
+font-size:14px;
+cursor:pointer;
+color:#4f8cff;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+
+<div id="loginBox">
+<h2>Вход</h2>
+<input id="email" placeholder="Почта или admin">
+<input id="password" placeholder="Пароль">
+<button onclick="login()">Войти</button>
+<div class="small" onclick="showReg()">Регистрация</div>
+</div>
+
+<div id="regBox" style="display:none">
+<h2>Регистрация</h2>
+<input id="r_email" placeholder="Почта">
+<input id="r_pass" placeholder="Пароль">
+<input id="r_nick" placeholder="Ник репетитора">
+<input id="r_pay" placeholder="Реквизиты для оплаты">
+<button onclick="register()">Создать аккаунт</button>
+<div class="small" onclick="showLogin()">У меня уже есть аккаунт</div>
+</div>
+
+</div>
+
+<script>
+
+function showReg(){
+loginBox.style.display="none"
+regBox.style.display="block"
+}
+
+function showLogin(){
+loginBox.style.display="block"
+regBox.style.display="none"
+}
+
+async function login(){
+
+const r=await fetch("/login",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+email:email.value,
+password:password.value
+})
+})
+
+if(r.status!==200){alert("Ошибка входа");return}
+
+const user=await r.json()
+localStorage.user=JSON.stringify(user)
+
+if(user.role==="admin") location="admin.html"
+else location="teacher.html"
+}
+
+async function register(){
+
+await fetch("/register",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+email:r_email.value,
+password:r_pass.value,
+nick:r_nick.value,
+payinfo:r_pay.value
+})
+})
+
+alert("Аккаунт создан")
+showLogin()
+}
+
+</script>
+
+</body>
+</html>
