@@ -47,7 +47,7 @@ border:1px solid #ddd
 <div class="box">
 <h2>Создать занятие</h2>
 
-<input id="nick" placeholder="Ник репетитора">
+<select id="teacher"></select>
 <input id="student" placeholder="Ученик">
 <input id="day" placeholder="День недели">
 <input id="time" placeholder="Время">
@@ -87,13 +87,28 @@ border:1px solid #ddd
 
 <script>
 
+async function loadTeachers(){
+
+const r = await fetch("/teachers")
+const data = await r.json()
+
+teacher.innerHTML=""
+
+data.forEach(t=>{
+ teacher.innerHTML += <option value="${t.id}">${t.nick}</option>
+})
+
+}
+
+loadTeachers()
+  
 async function create(){
 
 await fetch("/create",{
 method:"POST",
 headers:{"Content-Type":"application/json"},
 body:JSON.stringify({
-nick:nick.value,
+teacher_id:teacher.value,
 student:student.value,
 day:day.value,
 time:time.value
